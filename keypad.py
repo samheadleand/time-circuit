@@ -30,8 +30,7 @@ class Keypad:
         for r in ROW:
             GPIO.output(r, 1)
 
-    def scan(self):
-        now = datetime.now()
+    def scan(self, now):
         if (now - self.last_time_called).total_seconds() < 1:
             return False
         #which key has been pressed
@@ -40,10 +39,9 @@ class Keypad:
         for r in ROW:
             self.all_rows_on()
             GPIO.output(r, 0)
-            time.sleep(0.01)
+            time.sleep(0.0001)
             for c in COLUMN:
                 if not GPIO.input(c):
                     self.last_time_called = now
-                    print(MAPPING[(ROW.index(r), COLUMN.index(c))])
                     return MAPPING[(ROW.index(r), COLUMN.index(c))]
         return False

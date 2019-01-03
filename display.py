@@ -2,11 +2,13 @@ import RPi.GPIO as GPIO
 import time
 import get_time
 from datetime import datetime
+import keypad
 
 GPIO.setmode(GPIO.BCM)
 
+pad = keypad.Keypad()
 
-times = [14,18]
+times = [3,2]
 
 for slot in times:
     GPIO.setup(slot, GPIO.OUT)
@@ -45,16 +47,56 @@ num = {' ': [1,1,1,1,1,1,1],
        '8': [0,0,0,0,0,0,0],
        '9': [1,0,0,0,0,1,0],}
 
+numbers = '010120190000'
+value_filler = 0
+am_pm = 'am'
+
+def fix_times(time):
+    if ' ' in time:
+        return '            ', 'am'
+    day, month, year, hour, minute = time[:2], time[2:4], time[4:8], time[8:10], time[10:]
+    if int(day) > 31:
+        return '            ', 'am'
+    if int(month) > 12:
+        return '            ', 'am'
+    if int(hour) > 23:
+        return '            ', 'am'
+    elif int(hour) > 11:
+        return (day + month + year + get_time.add_zero_to_datetimes(str(int(hour) - 12)) + minute, 'pm')
+    else:
+        return (time, 'am')
+
+
+
 while True:
     now = datetime.now()
-    if get_time.find_time(now)[0] == 'am':
+    value = pad.scan(now)
+    
+    if value:
+        numbers = numbers[:value_filler] + value + numbers[value_filler+1:]
+        value_filler = (value_filler + 1) % len(digits)
+    
+    if value_filler == 0:
+        numbers, am_pm = fix_times(numbers)
+        print(am_pm)
+
+    # If nows time use this
+    #if get_time.find_time(now)[0] == 'am':
+    #    GPIO.output(times[0], 1)
+    #    GPIO.output(times[1], 0)
+    #else:
+    #    GPIO.output(times[0], 0)
+    #    GPIO.output(times[1], 1) 
+    # numbers = get_time.find_month_date(now) +  get_time.find_year(now) + get_time.find_time(now)[1]
+    
+    # If typing in time
+    if am_pm == 'am':
         GPIO.output(times[0], 1)
         GPIO.output(times[1], 0)
     else:
         GPIO.output(times[0], 0)
-        GPIO.output(times[1], 1) 
-    numbers = get_time.find_month_date(now) +  get_time.find_year(now) + get_time.find_time(now)[1]
-    #numbers = ' 123' + '4567' + '8910'
+        GPIO.output(times[1], 1)
+
     for counter,digit in enumerate(digits):
         for segment in range(7):
             GPIO.output(segments[segment], num[numbers[counter]][segment])
