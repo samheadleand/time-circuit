@@ -48,10 +48,12 @@ num = {' ': [1,1,1,1,1,1,1],
        '9': [1,0,0,0,0,1,0],}
 
 numbers = '010120190000'
+num_to_display = numbers
 value_filler = 0
 am_pm = 'am'
+number_to_display = (numbers, numbers, 'am')
 
-def fix_times(time):
+def time_to_display(time):
     if ' ' in time:
         return '            ', 'am'
     day, month, year, hour, minute = time[:2], time[2:4], time[4:8], time[8:10], time[10:]
@@ -62,9 +64,9 @@ def fix_times(time):
     if int(hour) > 23:
         return '            ', 'am'
     elif int(hour) > 11:
-        return (day + month + year + get_time.add_zero_to_datetimes(str(int(hour) - 12)) + minute, 'pm')
+        return (time, day + month + year + get_time.add_zero_to_datetimes(str(int(hour) - 12)) + minute, 'pm')
     else:
-        return (time, 'am')
+        return (time, time, 'am')
 
 
 
@@ -74,11 +76,11 @@ while True:
     
     if value:
         numbers = numbers[:value_filler] + value + numbers[value_filler+1:]
+        num_to_display = numbers
         value_filler = (value_filler + 1) % len(digits)
     
     if value_filler == 0:
-        numbers, am_pm = fix_times(numbers)
-        print(am_pm)
+        numbers, num_to_display, am_pm = time_to_display(numbers)
 
     # If nows time use this
     #if get_time.find_time(now)[0] == 'am':
@@ -99,7 +101,7 @@ while True:
 
     for counter,digit in enumerate(digits):
         for segment in range(7):
-            GPIO.output(segments[segment], num[numbers[counter]][segment])
+            GPIO.output(segments[segment], num[num_to_display[counter]][segment])
         GPIO.output(digit, 1)
         time.sleep(0.001)
         GPIO.output(digit, 0)
