@@ -51,7 +51,7 @@ numbers = '010120190000'
 num_to_display = numbers
 value_filler = 0
 am_pm = 'am'
-number_to_display = (numbers, numbers, 'am')
+number_to_display = (numbers, num_to_display, 'am')
 
 def time_to_display(time):
     if ' ' in time:
